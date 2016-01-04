@@ -1,52 +1,18 @@
 import ScreenTrack from 'discourse/lib/screen-track';
 import { number } from 'discourse/lib/formatter';
 import DiscourseURL from 'discourse/lib/url';
-import { default as computed, on } from 'ember-addons/ember-computed-decorators';
 import { fmt } from 'discourse/lib/computed';
 
-const DAY = 60 * 50 * 1000;
 
 const PostView = Discourse.GroupedView.extend(Ember.Evented, {
-  classNames: ['topic-post', 'clearfix'],
-  classNameBindings: ['needsModeratorClass:moderator:regular',
-                      'selected',
-                      'post.hidden:post-hidden',
-                      'post.deleted:deleted',
-                      'post.topicOwner:topic-owner',
-                      'groupNameClass',
-                      'post.wiki:wiki',
-                      'whisper'],
+  classNameBindings: ['selected'],
 
   post: Ember.computed.alias('content'),
   postElementId: fmt('post.post_number', 'post_%@'),
-  likedUsers: null,
-
-  @on('init')
-  initLikedUsers() {
-    this.set('likedUsers', []);
-  },
-
-  @computed('post.post_type')
-  whisper(postType) {
-    return postType === this.site.get('post_types.whisper');
-  },
 
   templateName: function() {
     return (this.get('post.post_type') === this.site.get('post_types.small_action')) ? 'post-small-action' : 'post';
   }.property('post.post_type'),
-
-  historyHeat: function() {
-    const updatedAt = this.get('post.updated_at');
-    if (!updatedAt) { return; }
-
-    // Show heat on age
-    const rightNow = new Date().getTime(),
-        updatedAtDate = new Date(updatedAt).getTime();
-
-    if (updatedAtDate > (rightNow - DAY * Discourse.SiteSettings.history_hours_low)) return 'heatmap-high';
-    if (updatedAtDate > (rightNow - DAY * Discourse.SiteSettings.history_hours_medium)) return 'heatmap-med';
-    if (updatedAtDate > (rightNow - DAY * Discourse.SiteSettings.history_hours_high)) return 'heatmap-low';
-  }.property('post.updated_at'),
 
   needsModeratorClass: function() {
     return (this.get('post.post_type') === this.site.get('post_types.moderator_action')) ||
@@ -202,37 +168,6 @@ const PostView = Discourse.GroupedView.extend(Ember.Evented, {
   },
 
   actions: {
-    toggleLike() {
-      const currentUser = this.get('controller.currentUser');
-      const post = this.get('post');
-      const likeAction = post.get('likeAction');
-      if (likeAction && likeAction.get('canToggle')) {
-        const users = this.get('likedUsers');
-        const store = this.get('controller.store');
-        const action = store.createRecord('post-action-user',
-          currentUser.getProperties('id', 'username', 'avatar_template')
-        );
-
-        if (likeAction.toggle(post) && users.get('length')) {
-          users.addObject(action);
-        } else {
-          users.removeObject(action);
-        }
-      }
-    },
-
-    toggleWhoLiked() {
-      const post = this.get('post');
-      const likeAction = post.get('likeAction');
-      if (likeAction) {
-        const users = this.get('likedUsers');
-        if (users.get('length')) {
-          users.clear();
-        } else {
-          likeAction.loadUsers(post).then(newUsers => this.set('likedUsers', newUsers));
-        }
-      }
-    },
 
     // Toggle the replies this post is a reply to
     toggleReplyHistory(post) {

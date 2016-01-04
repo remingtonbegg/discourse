@@ -35,7 +35,6 @@ const Post = RestModel.extend({
   deletedViaTopic: Em.computed.and('firstPost', 'topic.deleted_at'),
   deleted: Em.computed.or('deleted_at', 'deletedViaTopic'),
   notDeleted: Em.computed.not('deleted'),
-  userDeleted: Em.computed.empty('user_id'),
 
   hasTimeGap: function() {
     return (this.get('daysSincePrevious') || 0) > Discourse.SiteSettings.show_time_gap_days;
@@ -68,19 +67,7 @@ const Post = RestModel.extend({
 
   usernameUrl: url('username', '/users/%@'),
 
-  showUserReplyTab: function() {
-    return this.get('reply_to_user') && (
-      !Discourse.SiteSettings.suppress_reply_directly_above ||
-      this.get('reply_to_post_number') < (this.get('post_number') - 1)
-    );
-  }.property('reply_to_user', 'reply_to_post_number', 'post_number'),
-
   topicOwner: propertyEqual('topic.details.created_by.id', 'user_id'),
-  hasHistory: Em.computed.gt('version', 1),
-
-  canViewRawEmail: function() {
-    return this.get("user_id") === Discourse.User.currentProp("id") || Discourse.User.currentProp('staff');
-  }.property("user_id"),
 
   updatePostField(field, value) {
     const data = {};
@@ -97,26 +84,12 @@ const Post = RestModel.extend({
     return this.get('link_counts').filterProperty('internal').filterProperty('title');
   }.property('link_counts.@each.internal'),
 
-  // Edits are the version - 1, so version 2 = 1 edit
-  editCount: function() { return this.get('version') - 1; }.property('version'),
-
   flagsAvailable: function() {
     const post = this;
     return Discourse.Site.currentProp('flagTypes').filter(function(item) {
       return post.get("actionByName." + item.get('name_key') + ".can_act");
     });
   }.property('actions_summary.@each.can_act'),
-
-  actionsWithoutLikes: function() {
-    if (!!Ember.isEmpty(this.get('actions_summary'))) return null;
-
-    return this.get('actions_summary').filter(function(i) {
-      if (i.get('count') === 0) return false;
-      if (i.get('actionType.name_key') === 'like') { return false; }
-      if (i.get('users') && i.get('users').length > 0) return true;
-      return !i.get('hidden');
-    });
-  }.property('actions_summary.@each.users', 'actions_summary.@each.count'),
 
   afterUpdate(res) {
     if (res.category) {

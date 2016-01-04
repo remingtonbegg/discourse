@@ -181,6 +181,7 @@ I18n.interpolate = function(message, options) {
     value = options[name];
 
     if (!this.isValidNode(options, name)) {
+      console.log('wat');
       value = "[missing " + placeholder + " value]";
     }
 
