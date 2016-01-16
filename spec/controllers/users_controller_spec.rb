@@ -258,6 +258,7 @@ describe UsersController do
         end
       end
 
+<<<<<<< HEAD
       it 'raises an error when new email domain is present in email_domains_blacklist site setting' do
         SiteSetting.email_domains_blacklist = "mailinator.com"
         xhr :put, :change_email, username: user.username, email: "not_good@mailinator.com"
@@ -270,6 +271,8 @@ describe UsersController do
         expect(response).to_not be_success
       end
 
+=======
+>>>>>>> initial push
       context 'success' do
 
         it 'has an email token' do
