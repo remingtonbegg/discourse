@@ -9,6 +9,8 @@ require_relative '../lib/discourse_plugin_registry'
 # Global config
 require_relative '../app/models/global_setting'
 
+config.assets.initialize_on_precompile = false
+
 require 'pry-rails' if Rails.env.development?
 
 if defined?(Bundler)
@@ -49,6 +51,7 @@ module Discourse
     # we may want to change this later on
     # issue is image_optim crashes on missing dependencies
     config.assets.image_optim = false
+
 
     # Custom directories with classes and modules you want to be autoloadable.
     config.autoload_paths += Dir["#{config.root}/app/serializers"]
@@ -190,3 +193,4 @@ if defined?(PhusionPassenger)
     end
   end
 end
+
